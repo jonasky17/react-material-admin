@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, IconButton, Menu, MenuItem } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Menu, MenuItem, Button } from '@mui/material';
 import { useTheme } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -18,6 +18,7 @@ import useStyles from './styles';
 
 // components
 import { Typography, Avatar } from '../Wrappers/Wrappers';
+import { getActiveProfileName } from '../../utils/profile';
 
 // context
 import {
@@ -109,33 +110,26 @@ export default function Header() {
           )}
         </IconButton>
         <Typography variant='h6' weight='medium' className={classes.logotype}>
-          React Material Admin Full
+          {getActiveProfileName() || 'React Material Admin Full'}
         </Typography>
         <div className={classes.grow} />
-        <IconButton
-          aria-haspopup='true'
-          color='inherit'
+        <Button
+          variant="contained"
+          color="secondary"
           className={classes.headerMenuButton}
-          aria-controls='profile-menu'
-          onClick={(e) => setProfileMenu(e.currentTarget)}
+          style={{ color: '#fff', padding:'3px 8px' }}
+          onClick={() => {
+            localStorage.removeItem('activeProfileId');
+            navigate('/');
+          }}
         >
-          <Avatar
-            alt={currentUser?.firstName}
-             
-            src={
-              (currentUser?.avatar?.length >= 1 &&
-              currentUser?.avatar[currentUser.avatar.length - 1].publicUrl) || profile
-            }
-            classes={{ root: classes.headerIcon }}
-          >
-            {currentUser?.firstName?.[0]}
-          </Avatar>
-        </IconButton>
+          Change Profile
+        </Button>
         <Typography
           block
           style={{ display: 'flex', alignItems: 'center', marginLeft: 8 }}
         >
-          <div className={classes.profileLabel}>Hi,&nbsp;</div>
+          {/* Removed 'Hi,' greeting */}
           <Typography weight={'bold'} className={classes.profileLabel}>
             {currentUser?.firstName}
           </Typography>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, Outlet } from 'react-router-dom';
 import classnames from 'classnames';
 
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -94,7 +94,7 @@ function Layout() {
   return (
     <div className={classes.root}>
       <Header />
-      <Sidebar structure={structure}/>
+      <Sidebar structure={structure} />
       <div
         className={classnames(classes.content, {
           [classes.contentShift]: layoutState.isSidebarOpened,
@@ -102,107 +102,7 @@ function Layout() {
       >
         <div className={classes.fakeToolbar} />
         <BreadCrumbs />
-        <Routes>
-          <Route path='dashboard' element={<Dashboard />} />
-          <Route path='profile' element={<Profile />} />
-          <Route path='user/edit' element={<EditUser />} />
-
-          <Route
-            path='core'
-            element={<Navigate to='/app/core/typography' replace />}
-          />
-          <Route path='core/typography' element={<TypographyPage />} />
-          <Route path='core/colors' element={<ColorsPage />} />
-          <Route path='core/grid' element={<GridPage />} />
-
-          <Route
-            path='tables'
-            element={<Navigate to='/app/tables/static' replace />}
-          />
-          <Route path='tables/static' element={<StaticTablesPage />} />
-          <Route path='tables/dynamic' element={<DynamicTablesPage />} />
-
-          <Route path='ui' element={<Navigate to='/app/ui/icons' replace />} />
-          <Route path='ui/icons' element={<IconsPage />} />
-          <Route path='ui/badge' element={<BadgesPage />} />
-          <Route path='ui/carousel' element={<CarouselsPage />} />
-          <Route path='ui/modal' element={<ModalsPage />} />
-          <Route path='ui/navbar' element={<NavbarsPage />} />
-          <Route path='ui/tooltips' element={<TooltipsPage />} />
-          <Route path='ui/tabs' element={<TabsPage />} />
-          <Route path='ui/cards' element={<CardsPage />} />
-          <Route path='ui/widget' element={<WidgetsPage />} />
-          <Route path='ui/progress' element={<ProgressPage />} />
-          <Route path='ui/notifications' element={<NotificationsPage />} />
-
-          <Route
-            path='forms'
-            element={<Navigate to='/app/forms/elements' replace />}
-          />
-          <Route path='forms/elements' element={<FormsElements />} />
-          <Route path='forms/validation' element={<FormValidation />} />
-
-          <Route
-            path='charts'
-            element={<Navigate to='/app/charts/overview' replace />}
-          />
-          <Route path='charts/overview' element={<Charts />} />
-          <Route path='charts/line' element={<LineCharts />} />
-          <Route path='charts/bar' element={<BarCharts />} />
-          <Route path='charts/pie' element={<PieCharts />} />
-
-          <Route path='grid' element={<DraggableGrid />} />
-
-          <Route
-            path='maps'
-            element={<Navigate to='/app/maps/google' replace />}
-          />
-          <Route path='maps/google' element={<MapsGoogle />} />
-          <Route path='maps/vector' element={<VectorMaps />} />
-
-          <Route
-            path='extra'
-            element={<Navigate to='/app/extra/timeline' replace />}
-          />
-          <Route path='extra/timeline' element={<Timeline />} />
-          <Route path='extra/search' element={<Search />} />
-          <Route path='extra/gallery' element={<Gallery />} />
-          <Route path='extra/invoice' element={<Invoice />} />
-          <Route path='extra/calendar' element={<Calendar />} />
-
-          <Route
-            path='ecommerce/management'
-            element={
-              <ProductsProvider>
-                <Ecommerce />
-              </ProductsProvider>
-            }
-          />
-          <Route
-            path='ecommerce/management/edit/:id'
-            element={
-              <ProductsProvider>
-                <CreateProduct />
-              </ProductsProvider>
-            }
-          />
-          <Route
-            path='ecommerce/management/create'
-            element={
-              <ProductsProvider>
-                <CreateProduct />
-              </ProductsProvider>
-            }
-          />
-          <Route path='ecommerce/product/:id' element={<Product />} />
-          <Route path='ecommerce/product' element={<Product />} />
-          <Route path='ecommerce/gridproducts' element={<ProductsGrid />} />
-
-          <Route path='users' element={<UsersTablePage />} />
-          <Route path='user/new' element={<UsersFormPage />} />
-          <Route path='users/:id/edit' element={<UsersFormPage />} />
-          <Route path='*' element={<Navigate to='/app/dashboard' replace />} />
-        </Routes>
+        <Outlet />
         <Fab
           color='primary'
           aria-label='settings'

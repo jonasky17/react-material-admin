@@ -68,7 +68,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   server: {
-    port: 3000,
+    port: 3002,
   },
   test: {
     globals: true,

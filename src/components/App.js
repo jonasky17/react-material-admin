@@ -17,6 +17,8 @@ import Error from '../pages/error';
 import Login from '../pages/login';
 import Verify from '../pages/verify';
 import Reset from '../pages/reset';
+import Landing from '../pages/landing/Landing';
+import Inventory from '../pages/inventory/Inventory';
 
 // context
 import { useUserState } from '../context/UserContext';
@@ -34,7 +36,7 @@ export default function App() {
         <BrowserRouter basename={routerBase}>
           <RouterNavigatorSync />
           <Routes>
-            <Route path='/' element={<Navigate to='/app/profile' replace />} />
+            <Route path='/' element={<Landing />} />
             <Route
               path='/app'
               element={<Navigate to='/app/dashboard' replace />}
@@ -49,7 +51,9 @@ export default function App() {
                   <Layout />
                 </PrivateRoute>
               }
-            />
+            >
+              <Route path='inventory' element={<Inventory />} />
+            </Route>
             <Route
               path='/login'
               element={

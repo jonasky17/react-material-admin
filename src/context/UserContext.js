@@ -1,5 +1,6 @@
 import React from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import { decodeJwtPayload } from '../utils/jwt';
 
 import { mockUser } from './mock';
@@ -119,7 +120,7 @@ function loginUser(
   } else {
     if (social) {
       window.location.href =
-        config.baseURLApi +
+        API_BASE_URL +
         '/auth/signin/' +
         social +
         '?app=' +

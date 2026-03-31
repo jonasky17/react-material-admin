@@ -1,5 +1,6 @@
 import React from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import config from '../../src/config';
 import { showSnackbar } from '../components/Snackbar';
 import {
@@ -37,7 +38,7 @@ async function list(filter = {}) {
   const query = queryParams.toString();
   const request = (filter.request || '').replace(/^(\?|&)+/, '');
   const url = request ? `/users?${query}&${request}` : `/users?${query}`;
-  const response = await axios.get(url);
+  const response = await axios.get(`${API_BASE_URL}${url}`);
 
   return response.data;
 }
@@ -307,7 +308,7 @@ const actions = {
       });
     } else {
       try {
-        const res = await axios.get(`/users/${id}`);
+        const res = await axios.get(`${API_BASE_URL}/users/${id}`);
         const currentUser = res.data;
         dispatch({
           type: 'USERS_FORM_FIND_SUCCESS',
@@ -333,7 +334,7 @@ const actions = {
       });
 
       if (config.isBackend) {
-        await axios.post('/users', { data: values });
+        await axios.post(`${API_BASE_URL}/users`, { data: values });
       } else {
         createMockUser(values);
       }
@@ -365,7 +366,7 @@ const actions = {
 
       let updatedUser = values;
       if (config.isBackend) {
-        await axios.put(`/users/${id}`, { id, data: values });
+        await axios.put(`${API_BASE_URL}/users/${id}`, { id, data: values });
         updatedUser = { id, ...values };
       } else {
         updatedUser = updateMockUser(id, values);
@@ -410,7 +411,7 @@ const actions = {
         dispatch({
           type: 'USERS_FORM_CREATE_STARTED',
         });
-        await axios.put('/auth/password-update', {
+        await axios.put(`${API_BASE_URL}/auth/password-update`, {
           newPassword,
           currentPassword,
         });
@@ -464,7 +465,7 @@ const actions = {
       });
 
       if (config.isBackend) {
-        await axios.delete(`/users/${id}`);
+        await axios.delete(`${API_BASE_URL}/users/${id}`);
       } else {
         deleteMockUser(id);
       }

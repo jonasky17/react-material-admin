@@ -19,6 +19,7 @@ import Verify from '../pages/verify';
 import Reset from '../pages/reset';
 import Landing from '../pages/landing/Landing';
 import Inventory from '../pages/inventory/Inventory';
+import ProductDetail from '../pages/inventory/ProductDetail';
 
 // context
 import { useUserState } from '../context/UserContext';
@@ -53,6 +54,7 @@ export default function App() {
               }
             >
               <Route path='inventory' element={<Inventory />} />
+              <Route path='inventory/:productId' element={<ProductDetail />} />
             </Route>
             <Route
               path='/login'

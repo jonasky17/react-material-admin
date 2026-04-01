@@ -4,11 +4,13 @@ import { Link } from 'react-router-dom';
 import { Box, Grid, Breadcrumbs, Tabs, Tab } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Typography, Button } from '../Wrappers';
+import axios from 'axios';
 import {
   NavigateNext as NavigateNextIcon,
   CalendarToday as CalendarIcon,
 } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
+import { getActiveProfileId } from '../../utils/profile';
 
 // styles
 import useStyles from '../Layout/styles';
@@ -28,18 +30,54 @@ const BreadCrumbs = () => {
   const location = useLocation();
   const classes = useStyles();
   const [value, setValue] = React.useState(2);
+  const [inventoryProductName, setInventoryProductName] = React.useState('');
+
+  React.useEffect(() => {
+    const match = location.pathname.match(/^\/app\/inventory\/(\d+)$/);
+    if (!match) {
+      setInventoryProductName('');
+      return;
+    }
+
+    const fetchInventoryProductName = async () => {
+      try {
+        const profileId = getActiveProfileId();
+        if (!profileId) {
+          setInventoryProductName(match[1]);
+          return;
+        }
+
+        const res = await axios.get(
+          `http://localhost:3003/products/${match[1]}?profile_id=${profileId}`,
+        );
+        const name = res.data?.response?.data?.name;
+        setInventoryProductName(name || match[1]);
+      } catch (error) {
+        setInventoryProductName(match[1]);
+      }
+    };
+
+    fetchInventoryProductName();
+  }, [location.pathname]);
 
   const renderBreadCrumbs = () => {
     let url = location.pathname;
-    let route = url
-      .split('/')
-      .slice(1)
-      .map((route) =>
-        route
+    const routeSegments = url.split('/').slice(1);
+    const route = routeSegments.map((segment, index) => {
+      if (
+        routeSegments[0] === 'app' &&
+        routeSegments[1] === 'inventory' &&
+        index === 2 &&
+        inventoryProductName
+      ) {
+        return inventoryProductName;
+      }
+
+      return segment
           .split('-')
           .map((word) => word[0].toUpperCase() + word.slice(1))
-          .join(' '),
-      );
+          .join(' ');
+    });
     const length = route.length;
     return route.map((item, index) => {
       let middlewareUrl =

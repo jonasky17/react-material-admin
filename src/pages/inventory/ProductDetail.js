@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Typography,
@@ -6,20 +6,31 @@ import {
   Paper,
   Grid,
   Chip,
-  Divider,
   Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getActiveProfileId } from '../../utils/profile';
+import PriceModal from 'components/PriceModal';
 
 export default function ProductDetail() {
   const navigate = useNavigate();
   const { productId } = useParams();
 
   const [product, setProduct] = useState(null);
+  const [priceHistory, setPriceHistory] = useState([]);
+  const [stockBatches, setStockBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [priceModalOpen, setPriceModalOpen] = useState(false);
+  const [savingPrice, setSavingPrice] = useState(false);
+  const [editingPriceEntry, setEditingPriceEntry] = useState(null);
 
   const pesoFormatter = useMemo(
     () =>
@@ -56,10 +67,32 @@ export default function ProductDetail() {
       }
 
       try {
-        const res = await axios.get(
+        const productRes = await axios.get(
           `http://localhost:3003/products/${productId}?profile_id=${profileId}`,
         );
-        setProduct(res.data?.response?.data || null);
+
+        setProduct(productRes.data?.response?.data || null);
+
+        const priceHistoryRes = await axios.get(
+          `http://localhost:3003/price-history/product/${productId}`,
+        );
+        const rawPriceHistory = priceHistoryRes.data?.response?.data;
+        const sortedPriceHistory = Array.isArray(rawPriceHistory)
+          ? rawPriceHistory
+              .slice()
+              .sort(
+                (a, b) =>
+                  new Date(b?.effective_date || b?.created_at).getTime() -
+                  new Date(a?.effective_date || a?.created_at).getTime(),
+              )
+          : [];
+        setPriceHistory(sortedPriceHistory);
+
+        const stockBatchesRes = await axios.get(
+          `http://localhost:3003/stock-batches/product/${productId}`,
+        );
+        const rawStockBatches = stockBatchesRes.data?.response?.data;
+        setStockBatches(Array.isArray(rawStockBatches) ? rawStockBatches : []);
       } catch (err) {
         const message =
           err.response?.data?.response?.message ||
@@ -74,26 +107,131 @@ export default function ProductDetail() {
     fetchProduct();
   }, [productId]);
 
+  const refreshPriceHistory = async () => {
+    try {
+      const priceHistoryRes = await axios.get(
+        `http://localhost:3003/price-history/product/${productId}`,
+      );
+      const rawPriceHistory = priceHistoryRes.data?.response?.data;
+      const sortedPriceHistory = Array.isArray(rawPriceHistory)
+        ? rawPriceHistory
+            .slice()
+            .sort(
+              (a, b) =>
+                new Date(b?.effective_date || b?.created_at).getTime() -
+                new Date(a?.effective_date || a?.created_at).getTime(),
+            )
+        : [];
+      setPriceHistory(sortedPriceHistory);
+    } catch {
+      setError('Failed to refresh price history');
+    }
+  };
+
+  const handleSavePrice = async (form) => {
+    const parsedPrice = Number(form.price);
+    const effectiveDate = form.effective_date
+      ? new Date(`${form.effective_date}T00:00:00Z`)
+      : null;
+
+    if (Number.isNaN(parsedPrice)) {
+      setError('Please enter a valid price.');
+      return false;
+    }
+
+    if (!effectiveDate || Number.isNaN(effectiveDate.getTime())) {
+      setError('Please enter a valid effective date.');
+      return false;
+    }
+
+    setSavingPrice(true);
+    setError(null);
+    try {
+      const payload = {
+        productId: Number(productId),
+        price: parsedPrice,
+        effective_date: effectiveDate.toISOString(),
+      };
+
+      if (editingPriceEntry?.id) {
+        await axios.patch(
+          `http://localhost:3003/price-history/${editingPriceEntry.id}`,
+          payload,
+        );
+      } else {
+        await axios.post('http://localhost:3003/price-history', payload);
+      }
+
+      await refreshPriceHistory();
+      setEditingPriceEntry(null);
+      return true;
+    } catch (err) {
+      const message =
+        err.response?.data?.response?.message ||
+        err.response?.data?.message ||
+        'Failed to update price';
+      setError(Array.isArray(message) ? message.join(', ') : message);
+      return false;
+    } finally {
+      setSavingPrice(false);
+    }
+  };
+
+  const toDateInputValue = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toISOString().slice(0, 10);
+  };
+
+  const handleCreatePrice = () => {
+    setEditingPriceEntry(null);
+    setPriceModalOpen(true);
+  };
+
+  const handleEditPrice = (entry) => {
+    setEditingPriceEntry({
+      id: entry?.id,
+      price: entry?.price != null ? String(entry.price) : '',
+      effective_date: toDateInputValue(entry?.effective_date || entry?.created_at),
+    });
+    setPriceModalOpen(true);
+  };
+
   const status = getStockStatusMeta(product?.quantity, product?.low_stock_level);
-  const latestPrice = product?.priceHistory?.length
-    ? product.priceHistory[0]?.price
-    : null;
+  const latestPrice = priceHistory.length ? priceHistory[0]?.price : null;
   const quantityValue = Number(product?.quantity);
   const lowStockValue = Number(product?.low_stock_level);
 
-  const formatDateTime = (value) => {
+  const formatDate = (value) => {
     if (!value) return '--';
-
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '--';
 
-    return date.toLocaleString('en-PH', {
+    return date.toLocaleDateString('en-PH', {
       year: 'numeric',
       month: 'short',
       day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
     });
+  };
+
+  const getPriceTrend = (currentPrice, previousPrice) => {
+    const current = Number(currentPrice);
+    const previous = Number(previousPrice);
+
+    if (Number.isNaN(current) || Number.isNaN(previous)) {
+      return { label: '--', color: 'default' };
+    }
+
+    if (current > previous) {
+      return { label: 'Up', color: 'success' };
+    }
+
+    if (current < previous) {
+      return { label: 'Down', color: 'error' };
+    }
+
+    return { label: 'No change', color: 'default' };
   };
 
   if (loading) {
@@ -142,13 +280,22 @@ export default function ProductDetail() {
       </Box>
 
       <Paper sx={{ p: 3 }}>
-        <Grid container spacing={3} alignItems='center'>
-          <Grid item xs={12} md={8}>
+        <Grid container columnSpacing={4} rowSpacing={2} alignItems='flex-start'>
+          <Grid item xs={12} md={4}>
             <Typography variant='overline' color='text.secondary'>
-              PRODUCT NAME
+              PRODUCT
             </Typography>
-            <Typography variant='h5' sx={{ mb: 1 }}>
+            <Typography variant='h6' sx={{ mb: 1 }}>
               {product.name || '--'}
+            </Typography>
+            <Typography variant='body2' color='text.secondary'>
+              {product.description || '--'}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12} md={2}>
+            <Typography variant='overline' color='text.secondary'>
+              ITEM DETAILS
             </Typography>
             <Typography variant='body2' color='text.secondary'>
               SKU: {product.sku || '--'}
@@ -157,74 +304,161 @@ export default function ProductDetail() {
               Category: {product.category?.name || '--'}
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4}>
+
+          <Grid item xs={12} md={2}>
             <Typography variant='overline' color='text.secondary'>
               CURRENT PRICE
             </Typography>
-            <Typography variant='h5' align='right'>
+            <Typography variant='h6'>
               {latestPrice != null ? pesoFormatter.format(Number(latestPrice)) : '--'}
             </Typography>
-            <Box mt={1} display='flex' justifyContent='flex-end'>
-              <Chip label={status.label} color={status.color} variant='outlined' size='small' />
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      <Paper sx={{ p: 3 }}>
-        <Typography variant='h6' sx={{ mb: 2 }}>
-          Product Info
-        </Typography>
-        <Divider sx={{ mb: 2 }} />
-
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <Typography variant='subtitle2' sx={{ mb: 1 }}>
-              PRODUCT DESCRIPTION
-            </Typography>
-            <Typography variant='body2' color='text.secondary'>
-              {product.description || '--'}
-            </Typography>
           </Grid>
 
-          <Grid item xs={12} md={4}>
-            <Typography variant='subtitle2' sx={{ mb: 1 }}>
-              PRODUCT CODE
-            </Typography>
-            <Typography variant='body2' sx={{ mb: 2 }}>
-              {product.sku || '--'}
-            </Typography>
-
-            <Typography variant='subtitle2' sx={{ mb: 1 }}>
+          <Grid item xs={12} md={2}>
+            <Typography variant='overline' color='text.secondary'>
               INVENTORY
             </Typography>
-            <Typography variant='body2' color='text.secondary'>
-              Remaining Stock: {Number.isNaN(quantityValue) ? '--' : quantityValue}
-            </Typography>
-            <Typography variant='body2' color='text.secondary'>
-              Low Stock Level: {Number.isNaN(lowStockValue) ? '--' : lowStockValue}
-            </Typography>
-            <Typography variant='body2' color='text.secondary'>
-              Unit: {product.unit || '--'}
-            </Typography>
+            <Box display='flex' alignItems='center' justifyContent='space-between' gap={2} flexWrap='wrap'>
+              <Typography variant='body2' color='text.secondary'>
+                Remaining: {Number.isNaN(quantityValue) ? '--' : quantityValue}
+              </Typography>
+              <Typography variant='body2' color='text.secondary'>
+                Unit: {product.unit || '--'}
+              </Typography>
+            </Box>
           </Grid>
 
-          <Grid item xs={12} md={4}>
-            <Typography variant='subtitle2' sx={{ mb: 1 }}>
-              STATUS & TIMELINE
+          <Grid item xs={12} md={2}>
+            <Typography variant='overline' color='text.secondary'>
+              STOCK SETTINGS
             </Typography>
-            <Box sx={{ mb: 1 }}>
+            <Typography variant='body2' color='text.secondary'>
+              Low Stock: {Number.isNaN(lowStockValue) ? '--' : lowStockValue}
+            </Typography>
+            <Box sx={{ mt: 1 }}>
               <Chip label={status.label} color={status.color} variant='outlined' size='small' />
             </Box>
-            <Typography variant='body2' color='text.secondary'>
-              Created: {formatDateTime(product.created_at)}
-            </Typography>
-            <Typography variant='body2' color='text.secondary'>
-              Updated: {formatDateTime(product.updated_at)}
-            </Typography>
           </Grid>
         </Grid>
       </Paper>
+
+      <Grid container spacing={2} alignItems='stretch'>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant='h6'>Price History</Typography>
+              <Button
+                variant='outlined'
+                size='small'
+                onClick={handleCreatePrice}
+              >
+                Update Price
+              </Button>
+            </Box>
+            <TableContainer>
+              <Table size='small'>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date</TableCell>
+                    <TableCell align='right'>Price</TableCell>
+                    <TableCell>Trend</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {priceHistory.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={3} align='center'>
+                        No price history available
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    priceHistory.map((entry, index) => {
+                      const trend = getPriceTrend(entry?.price, priceHistory[index + 1]?.price);
+
+                      return (
+                        <TableRow
+                          key={entry?.id || `${entry?.created_at || 'date'}-${index}`}
+                          hover
+                          onClick={() => handleEditPrice(entry)}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <TableCell>{formatDate(entry?.effective_date || entry?.created_at)}</TableCell>
+                          <TableCell align='right'>
+                            {entry?.price != null ? pesoFormatter.format(Number(entry.price)) : '--'}
+                          </TableCell>
+                          <TableCell>
+                            {index === priceHistory.length - 1 ? (
+                              <Chip label='--' size='small' variant='outlined' />
+                            ) : (
+                              <Chip
+                                label={trend.label}
+                                color={trend.color}
+                                size='small'
+                                variant='outlined'
+                              />
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant='h6' sx={{ mb: 2 }}>
+              Stock Batches
+            </Typography>
+            <TableContainer>
+              <Table size='small'>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date Received</TableCell>
+                    <TableCell>Location</TableCell>
+                    <TableCell align='right'>Quantity Received</TableCell>
+                    <TableCell align='right'>Quantity Remaining</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {stockBatches.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} align='center'>
+                        No stock batches available
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    stockBatches.map((batch) => (
+                      <TableRow key={batch?.id}>
+                        <TableCell>{formatDate(batch?.received_at)}</TableCell>
+                        <TableCell>{batch?.location?.name || '--'}</TableCell>
+                        <TableCell align='right'>{Number(batch?.quantity_received || 0).toFixed(2)}</TableCell>
+                        <TableCell align='right'>{Number(batch?.quantity_remaining || 0).toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <PriceModal
+        open={priceModalOpen}
+        onClose={() => {
+          setPriceModalOpen(false);
+          setEditingPriceEntry(null);
+        }}
+        onSubmit={handleSavePrice}
+        loading={savingPrice}
+        title={editingPriceEntry ? 'Edit Price' : 'Update Price'}
+        actionLabel={editingPriceEntry ? 'Update' : 'Save'}
+        initialValues={editingPriceEntry}
+      />
     </Box>
   );
 }

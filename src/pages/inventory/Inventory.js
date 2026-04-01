@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Container,
   Typography,
   Box,
   CircularProgress,
@@ -79,6 +78,13 @@ export default function Inventory() {
     const lowStockLevel = parseOptionalNumber(form.low_stock_level);
     const categoryId = parseOptionalNumber(form.category_id);
     const initialPrice = parseOptionalNumber(form.initialPrice);
+    const locationId = form.locationId?.trim();
+    const movementDefinitionId = form.movementDefinitionId?.trim();
+    const sourceLocationId = form.sourceLocationId?.trim();
+    const destinationLocationId = form.destinationLocationId?.trim();
+    const quantityHasValue = quantity !== undefined;
+    const hasInitialStockMovement = quantityHasValue && quantity !== 0;
+    const receivedAt = form.received_at ? new Date(form.received_at) : null;
 
     const payload = {
       name,
@@ -94,17 +100,40 @@ export default function Inventory() {
     if (form.sku?.trim()) payload.sku = form.sku.trim();
     if (form.unit?.trim()) payload.unit = form.unit.trim();
     if (form.status?.trim()) payload.status = form.status.trim();
+    if (form.remarks?.trim()) payload.remarks = form.remarks.trim();
     if (quantity !== undefined) payload.quantity = quantity;
     if (lowStockLevel !== undefined) payload.low_stock_level = lowStockLevel;
     if (categoryId !== undefined) payload.category_id = categoryId;
     if (initialPrice !== undefined) payload.initialPrice = initialPrice;
+    if (locationId) payload.locationId = locationId;
+    if (movementDefinitionId) payload.movementDefinitionId = movementDefinitionId;
+    if (sourceLocationId) payload.sourceLocationId = sourceLocationId;
+    if (destinationLocationId) payload.destinationLocationId = destinationLocationId;
+    if (receivedAt && !Number.isNaN(receivedAt.getTime())) {
+      payload.received_at = receivedAt.toISOString();
+    }
 
-    const hasInvalidOptionalNumber = [quantity, lowStockLevel, categoryId, initialPrice]
+    const hasInvalidOptionalNumber = [
+      quantity,
+      lowStockLevel,
+      categoryId,
+      initialPrice,
+    ]
       .filter((value) => value !== undefined)
       .some((value) => Number.isNaN(value));
 
     if (hasInvalidOptionalNumber) {
       setError('Please provide valid numeric values for quantity, low stock, category, and initial price.');
+      return;
+    }
+
+    if (form.received_at && (!receivedAt || Number.isNaN(receivedAt.getTime()))) {
+      setError('Please provide a valid received at date and time.');
+      return;
+    }
+
+    if (hasInitialStockMovement && !movementDefinitionId) {
+      setError('Movement definition is required when quantity is not 0.');
       return;
     }
 
@@ -143,7 +172,7 @@ export default function Inventory() {
           `http://localhost:3003/products?profile_id=${profileId}`,
         );
         setProducts(res.data.response.data || []);
-      } catch (err) {
+      } catch {
         setError('Failed to fetch products');
       } finally {
         setLoading(false);

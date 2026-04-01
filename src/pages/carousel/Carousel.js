@@ -127,7 +127,8 @@ function Carousel() {
             <Button
               size="small"
               onClick={handleNext}
-              disabled={activeStep === maxSteps - 1}>
+              disabled={activeStep === maxSteps - 1}
+            >
               
                 Next
                 {theme.direction === "rtl" ?
@@ -141,7 +142,9 @@ function Carousel() {
             <Button
               size="small"
               onClick={handleBack}
-              disabled={activeStep === 0}>
+              disabled={activeStep === 0}
+              button={undefined} // Fix for non-boolean attribute
+            >
               
                 {theme.direction === "rtl" ?
               <KeyboardArrowRight /> :
@@ -178,7 +181,8 @@ function Carousel() {
             <Button
               size="small"
               onClick={handleNext}
-              disabled={activeStep === maxSteps - 1}>
+              disabled={activeStep === maxSteps - 1}
+            >
               
                 Next
                 {theme.direction === "rtl" ?
@@ -192,7 +196,9 @@ function Carousel() {
             <Button
               size="small"
               onClick={handleBack}
-              disabled={activeStep === 0}>
+              disabled={activeStep === 0}
+              button={undefined} // Fix for non-boolean attribute
+            >
               
                 {theme.direction === "rtl" ?
               <KeyboardArrowRight /> :
@@ -229,7 +235,8 @@ function Carousel() {
             <Button
               size="small"
               onClick={handleNext}
-              disabled={activeStep === maxSteps - 1}>
+              disabled={activeStep === maxSteps - 1}
+            >
               
                 Next
                 {theme.direction === "rtl" ?
@@ -243,7 +250,9 @@ function Carousel() {
             <Button
               size="small"
               onClick={handleBack}
-              disabled={activeStep === 0}>
+              disabled={activeStep === 0}
+              button={undefined} // Fix for non-boolean attribute
+            >
               
                 {theme.direction === "rtl" ?
               <KeyboardArrowRight /> :

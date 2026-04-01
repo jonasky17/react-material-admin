@@ -1,7 +1,8 @@
 import React from 'react';
 import { Grid, Typography } from '@mui/material';
 import Widget from '../../components/Widget';
-import { ReactSortable } from 'react-sortablejs';
+import ReactSortable from 'react-sortablejs'; // Use default export for ReactSortable
+
 // Components
 import DraggableStory from './Components/DraggableStory';
 import Loader from './Components/Loader/Loader';
@@ -115,6 +116,7 @@ function DraggableGrid() {
           group="shared"
           animation={550}
           ghostClass="widget-placeholder-react"
+          tag="div" // Ensure a valid tag is used
         >
           {leftWidgets.map(({ id }) => renderWidget(id, classes))}
         </ReactSortable>
@@ -126,6 +128,7 @@ function DraggableGrid() {
           group="shared"
           animation={550}
           ghostClass="widget-placeholder-react"
+          tag="div" // Ensure a valid tag is used
         >
           {rightWidgets.map(({ id }) => renderWidget(id, classes))}
         </ReactSortable>

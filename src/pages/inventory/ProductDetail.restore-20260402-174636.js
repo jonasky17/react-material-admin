@@ -498,7 +498,7 @@ export default function ProductDetail() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={3} sx={{ width: { md: 500 }, maxWidth: { md: 500 }, flexBasis: { md: '500px' } }}>
+        <Grid item xs={12} md={3}>
           <Paper sx={{ p: 3, height: '100%' }}>
             <Typography variant='h6' sx={{ mb: 2 }}>
               Price Trend

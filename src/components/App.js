@@ -20,6 +20,8 @@ import Reset from '../pages/reset';
 import Landing from '../pages/landing/Landing';
 import Inventory from '../pages/inventory/Inventory';
 import ProductDetail from '../pages/inventory/ProductDetail';
+import DashboardV1 from '../pages/dashboard/DashboardV1';
+import DashboardV2 from '../pages/dashboard/DashboardV2';
 
 // context
 import { useUserState } from '../context/UserContext';
@@ -53,6 +55,8 @@ export default function App() {
                 </PrivateRoute>
               }
             >
+              <Route path='dashboard' element={<DashboardV1 />} />
+              <Route path='dashboard-v2' element={<DashboardV2 />} />
               <Route path='inventory' element={<Inventory />} />
               <Route path='inventory/:productId' element={<ProductDetail />} />
             </Route>

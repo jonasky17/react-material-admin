@@ -168,3 +168,53 @@ Location Management Form:
 Movement Definition Form:
 - name
 - action_type (IN | OUT | INTERNAL)
+
+## 8) Dashboard Snapshots (temporary — to be replaced when sales/expense modules are built)
+
+Base endpoint:
+- /dashboard-snapshots
+
+This is a temporary table for manually logging financial snapshots for the dashboard (V1).
+Once the full sales and expense modules are complete, this table and endpoint will be removed
+and the dashboard will derive real data from the RDBMS.
+
+Create (POST /dashboard-snapshots):
+{
+  "profile_id": 1,
+  "entry_date": "2026-04-21T00:00:00Z",
+  "sales": 15000.00,
+  "expenses": 8500.00,
+  "cash_on_hand": 25000.00,
+  "accounts_receivable": 3200.00,
+  "inventory_value": 12000.00,
+  "notes": "Weekly summary"
+}
+
+Update (PATCH /dashboard-snapshots/:id):
+{
+  "sales": 16000.00,
+  "notes": "Corrected sales figure"
+}
+
+List (GET /dashboard-snapshots?profile_id=1):
+Returns array of snapshots sorted by entry_date descending.
+
+Required backend fields for dashboard_snapshots table:
+- id (PK)
+- profile_id (FK to profiles.id, required)
+- entry_date (date, required)
+- sales (decimal, nullable)
+- expenses (decimal, nullable)
+- cash_on_hand (decimal, nullable)
+- accounts_receivable (decimal, nullable)
+- inventory_value (decimal, nullable)
+- notes (text, nullable)
+- created_at (timestamp)
+- updated_at (timestamp)
+
+Expected response shape (consistent with other endpoints):
+{
+  "response": {
+    "data": [ ...snapshots ]
+  }
+}

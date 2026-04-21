@@ -371,7 +371,7 @@ export default function ProductDetail() {
 
       <Paper sx={{ p: 3 }}>
         <Grid container columnSpacing={4} rowSpacing={2} alignItems='flex-start'>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant='overline' color='text.secondary'>
               PRODUCT
             </Typography>
@@ -383,7 +383,7 @@ export default function ProductDetail() {
             </Typography>
           </Grid>
 
-          <Grid item xs={12} md={2}>
+          <Grid size={{ xs: 12, md: 2 }}>
             <Typography variant='overline' color='text.secondary'>
               ITEM DETAILS
             </Typography>
@@ -395,7 +395,7 @@ export default function ProductDetail() {
             </Typography>
           </Grid>
 
-          <Grid item xs={12} md={2}>
+          <Grid size={{ xs: 12, md: 2 }}>
             <Typography variant='overline' color='text.secondary'>
               CURRENT PRICE
             </Typography>
@@ -404,7 +404,7 @@ export default function ProductDetail() {
             </Typography>
           </Grid>
 
-          <Grid item xs={12} md={2}>
+          <Grid size={{ xs: 12, md: 2 }}>
             <Typography variant='overline' color='text.secondary'>
               INVENTORY
             </Typography>
@@ -418,7 +418,7 @@ export default function ProductDetail() {
             </Box>
           </Grid>
 
-          <Grid item xs={12} md={2}>
+          <Grid size={{ xs: 12, md: 2 }}>
             <Typography variant='overline' color='text.secondary'>
               STOCK SETTINGS
             </Typography>
@@ -432,8 +432,8 @@ export default function ProductDetail() {
         </Grid>
       </Paper>
 
-      <Grid container spacing={2} alignItems='stretch' justifyContent='space-between'>
-        <Grid item xs={12} md={4}>
+      <Grid container spacing={2} alignItems='stretch'>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 3, height: '100%' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant='h6'>Price History</Typography>
@@ -498,7 +498,7 @@ export default function ProductDetail() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={3} sx={{ width: { md: 500 }, maxWidth: { md: 500 }, flexBasis: { md: '500px' } }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 3, height: '100%' }}>
             <Typography variant='h6' sx={{ mb: 2 }}>
               Price Trend
@@ -536,7 +536,7 @@ export default function ProductDetail() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={5} sx={{ ml: { md: 'auto' } }}>
+        <Grid size={12}>
           <Paper sx={{ p: 3, height: '100%' }}>
             <Typography variant='h6' sx={{ mb: 2 }}>
               Stock Batches
